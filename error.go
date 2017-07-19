@@ -93,7 +93,11 @@ func showErr(err interface{}, ctx *context.Context, stack string) {
 		"BeegoVersion":  VERSION,
 		"GoVersion":     runtime.Version(),
 	}
-	ctx.ResponseWriter.WriteHeader(500)
+	if ctx.Output.Status != 0 {
+		ctx.ResponseWriter.WriteHeader(ctx.Output.Status)
+	} else {
+		ctx.ResponseWriter.WriteHeader(500)
+	}
 	t.Execute(ctx.ResponseWriter, data)
 }
 
@@ -244,6 +248,30 @@ func forbidden(rw http.ResponseWriter, r *http.Request) {
 			"<br>Your address may be blocked"+
 			"<br>The site may be disabled"+
 			"<br>You need to log in"+
+			"</ul>",
+	)
+}
+
+// show 422 missing xsrf token
+func missingxsrf(rw http.ResponseWriter, r *http.Request) {
+	responseError(rw, r,
+		422,
+		"<br>The page you have requested is forbidden."+
+			"<br>Perhaps you are here because:"+
+			"<br><br><ul>"+
+			"<br>'_xsrf' argument missing from POST"+
+			"</ul>",
+	)
+}
+
+// show 417 invalid xsrf token
+func invalidxsrf(rw http.ResponseWriter, r *http.Request) {
+	responseError(rw, r,
+		417,
+		"<br>The page you have requested is forbidden."+
+			"<br>Perhaps you are here because:"+
+			"<br><br><ul>"+
+			"<br>expected XSRF not found"+
 			"</ul>",
 	)
 }
